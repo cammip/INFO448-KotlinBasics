@@ -41,7 +41,6 @@ class Person(var firstName: String, var lastName: String, var age: Int) {
 }
 
 // write a class "Money"
-
 class Money(val amount: Int, val currency: String) {
     init {
         if (amount < 0) {
@@ -51,10 +50,24 @@ class Money(val amount: Int, val currency: String) {
             throw IllegalArgumentException("Invalid currency")
         }
     }
-
-    fun convert(curr: String): Money {
+    fun convert(otherCurr: String): Money {
         if (otherCurr !in setOf("USD", "GBP", "CAN", "EUR"))
-            throw IllegalArgumentException("Invalid currency")
+            throw IllegalArgumentException("Unrecognized currency")
+
+        return if (this.currency == otherCurr) {
+            Money(this.amount, otherCurr)
+        }
+        else when (Pair(currency, otherCurr)) {
+            Pair("USD", "GBP") -> Money((this.amount * .5).toInt(), "GBP")
+            Pair("USD", "EUR") -> Money((this.amount * 1.5).toInt(), "EUR")
+            Pair("USD", "CAN") -> Money((this.amount * 1.25).toInt(), "CAN")
+            Pair("GBP", "USD") -> Money((this.amount * 2).toInt(), "USD")
+            Pair("EUR", "USD") -> Money((this.amount * .75).toInt(), "USD")
+            Pair("CAN", "USD") -> Money((this.amount * 5 / 4).toInt(), "USD")
+            else -> convert("USD").convert(otherCurr)
+        }
     }
 
+    operator fun plus(other: Money): Money =
+        Money(this.amount + (other.convert(this.currency)).amount, this.currency)
 }
